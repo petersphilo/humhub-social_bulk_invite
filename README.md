@@ -10,7 +10,7 @@ As it stands right now, you must add this bit of code to the end of the file:
 ```
 protected/humhub/components/console/Application.php
 ```
-just *above* the last curly bracket (line 76 in HumHub 1.17.1)
+just ***above*** the last curly bracket (line 76 in HumHub 1.17.1)
 ```
     // begin added by me
     public function setLanguage($value)
