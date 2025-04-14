@@ -4,26 +4,6 @@ This module creates an Invite-by-email widget that is visible only by the member
 
 <br><br>
 
-## Big Issue, for now!!
-
-As it stands right now, you must add this bit of code to the end of the file:
-```
-protected/humhub/components/console/Application.php
-```
-just ***above*** the last curly bracket (line 76 in HumHub 1.17.1)
-```
-    // begin added by me
-    public function setLanguage($value)
-    {
-        if (!empty($value)) {
-            $this->language = $value;
-        }
-    }
-    // end added by me
-```
-
-<br><br>
-
 ## Donationware -- Consider a Donation!!
 
 Your doantion would really, really, really, really help!  
