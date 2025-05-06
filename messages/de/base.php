@@ -48,5 +48,10 @@ return array (
 	'The delay between each sent invite, in seconds (1s min.)'=>'Die Verzögerung zwischen den einzelnen Einladungen in Sekunden (min. 1 s)',
 	'The invite Language'=>'Die Einladungssprache',
 	'Show Debug Info?'=>'Debug-Informationen anzeigen?',
+	'Pending Registrations List'=>'Liste der ausstehenden Registrierungen',
+	'Times Sent'=>'Sendungen',
+	'Re-Send All Current Invites'=>'Alle aktuellen Einladungen erneut senden',
+	'Email addresses to invite -- only valid emails, 1 per line..'=>'E-Mail-Adressen zum Einladen – nur gültige E-Mails, 1 pro Zeile..',
+	'Token'=>'Zeichen',
 	'xxxxxx'=>'xxxxxx',
 	); 

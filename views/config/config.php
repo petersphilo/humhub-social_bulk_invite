@@ -52,6 +52,8 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 	</div>
 	<div class="panel-body">
 		<div style='float: right; '>
+			<a id="h477702w55" class="pull-right btn-sm btn btn-default" href="/admin/pending-registrations"><?php echo Yii::t('SocialBulkInviteModule.base','Pending Registrations List'); ?> <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+			<br><br>
 			<span class="btn btn-info btn-sm" id='socBulkInvite-DL'><?php echo Yii::t('SocialBulkInviteModule.base','Download Bulk Invite List'); ?></span>
 		</div>
 		<p>
@@ -88,10 +90,14 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 			<?php echo Yii::t('SocialBulkInviteModule.base','Refresh'); ?>
 		</a>
 		
+		<a class="btn btn-info" href="<?php echo Url::to(['/social_bulk_invite/config/config?resendCurrentInvites=resendCurrentInvites']); ?>">
+			<?php echo Yii::t('SocialBulkInviteModule.base','Re-Send All Current Invites'); ?>
+		</a>
+		<!--
 		<a class="btn btn-danger" style='float:right; ' href="<?php echo Url::to(['/social_bulk_invite/config/config?remove=remove']); ?>">
 			<?php echo Yii::t('SocialBulkInviteModule.base','Reset Current Invites'); ?>
 		</a>
-		<!--
+		
 		<a class="btn btn-danger" style='float:right; ' href="<?php echo Url::to(['/social_bulk_invite/config/config?reset=reset']); ?>">
 			Reset/Refresh
 		</a>
@@ -108,7 +114,11 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 	</div>
 	<div class="panel-body">
 <?php			
-	$GetPendingInvitesList_cmd=Yii::$app->db->createCommand("SELECT invite_email,invite_queued,invite_exists,member_id,full_member,date_created,date_updated,times_sent FROM social_bulk_invite WHERE full_member=0 ORDER BY id desc;")->queryAll(); 
+	$GetPendingInvitesList_cmd=Yii::$app->db->createCommand("SELECT invite_email,invite_queued,invite_exists,member_id,full_member,date_created,date_updated,times_sent 
+			FROM social_bulk_invite WHERE full_member=0 ORDER BY id desc;")->queryAll(); 
+	$PendingInvitesListCount=count($GetPendingInvitesList_cmd); 
+	
+	$GetMatchingToken_cmd=Yii::$app->db->createCommand("SELECT token FROM user_invite WHERE email=:Email;"); 
 	
 ?>
 		<style>
@@ -117,6 +127,8 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 			.MyRecentInvites td{border:1px solid #ddd; padding:0.25em; }
 			.NoWrapLines {white-space: nowrap; }
 			.redAlertOnZero, .redAlertOnZero td {background-color:#e99; }
+			.myCopyDataLink {position: relative; }
+			.myCopied{display: none; background-color:#333; color: #fff; border: 1px solid #ccc; border-radius: 4px; position: absolute; padding: 0.5em 1em; bottom: -2em; right: 2.5em; z-index:99; }
 		</style>
 		<table class='MyRecentInvites'>
 			<tr>
@@ -132,6 +144,12 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 				<td class='NoWrapLines'>
 					<?php echo Yii::t('SocialBulkInviteModule.base','Date Created'); ?>
 				</td>
+				<td class='NoWrapLines'>
+					<?php echo Yii::t('SocialBulkInviteModule.base','Times Sent'); ?>
+				</td>
+				<td class='NoWrapLines'>
+					<?php echo Yii::t('SocialBulkInviteModule.base','Token'); ?>
+				</td>
 			</tr>
 <?php			
 	function zeroOneToYN($zoyn){
@@ -143,11 +161,23 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 		if($raoz==0){$resp='redAlertOnZero ';}
 		return $resp;}
 	foreach($GetPendingInvitesList_cmd as $PendingInvitesList_row){
+		$theMatchingToken=''; 
+		if($PendingInvitesList_row['invite_queued']==1 && $PendingInvitesList_row['invite_exists']=1){
+			$theMatchingToken=$GetMatchingToken_cmd->bindValue(':Email',$PendingInvitesList_row['invite_email'])->queryScalar(); 
+			$theMatchingTokenURL=Url::to(['/user/registration?token='.$theMatchingToken], true); 
+			}
 		$BuildTableRow="<tr class='".redAlertOnZero($PendingInvitesList_row['invite_queued'])."'>"
 			."<td class='NoWrapLines'>".$PendingInvitesList_row['invite_email'].'</td>'
 			."<td>".zeroOneToYN($PendingInvitesList_row['invite_queued']).'</td>'
 			.'<td>'.zeroOneToYN($PendingInvitesList_row['invite_exists']).'</td>'
 			."<td class='NoWrapLines'>".substr($PendingInvitesList_row['date_created'],0,10).'</td>'
+			."<td class='NoWrapLines'>".$PendingInvitesList_row['times_sent'].'</td>'
+			."<td class='NoWrapLines'>".$theMatchingToken.' 
+				<div class="pull-right btn-sm btn btn-default myCopyDataLink" my-link="'.$theMatchingTokenURL.'">
+					<i class="fa fa-copy" aria-hidden="true"></i>
+					<div class="myCopied"><i>Copied!</i> '.$theMatchingTokenURL.'</div>
+				</div>
+				</td>'
 			.'</tr>'; 
 		echo $BuildTableRow; 
 		}
@@ -158,7 +188,7 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 </div>
 <script <?php echo humhub\libs\Html::nonce(); ?>>
 	$(function(){
-		var MyNewGetURL='',
+		var MyNewGetURL='', MyCopyDataLink='', 
 			MyCurrentGetURL=window.location.search; 
 		$('#socBulkInvite-DL').on('click',function(){
 			if(MyCurrentGetURL.length){MyNewGetURL=MyCurrentGetURL+'&SocBulkInviteDL=Yes'; }
@@ -179,6 +209,13 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 					TempdlLink.remove();
 					})
 				.catch(() => alert('something went wrong..'));
+			}); 
+		$('.myCopyDataLink').on('click',function(){
+			MyCopyDataLink=$(this).attr('my-link'); 
+			navigator.clipboard.writeText(MyCopyDataLink); 
+			$(this).children('.myCopied').fadeIn(600,function(){
+				$(this).fadeOut(600);
+				}); 
 			}); 
 		}); 
 </script>

@@ -34,6 +34,7 @@ use yii\db\Query;
 use yii\db\Command; 
 
 use humhub\modules\social_bulk_invite\jobs\InviteJob;
+use humhub\modules\social_bulk_invite\jobs\ResendInviteJob;
 
 /**
  * Defines the configure actions.
@@ -70,6 +71,10 @@ class ConfigController extends \humhub\modules\admin\components\Controller {
 				}
 			if(Yii::$app->request->get('remove')=='remove'){
 				$showMessage.=$this->myRemoveCurrentInvites(); 
+				$takeABreather='takeABreather'; 
+				}
+			if(Yii::$app->request->get('resendCurrentInvites')=='resendCurrentInvites'){
+				$showMessage.=$this->myResendCurrentInvites(); 
 				$takeABreather='takeABreather'; 
 				}
 			$form = new ConfigureForm();
@@ -137,7 +142,7 @@ class ConfigController extends \humhub\modules\admin\components\Controller {
 		
 		$RecordNewInvite_cmd=Yii::$app->db->createCommand("UPDATE social_bulk_invite SET invite_queued=1,date_updated=NOW() WHERE invite_email=:Email;");
 		
-		$RecordExistingInvite_cmd=Yii::$app->db->createCommand("UPDATE social_bulk_invite SET invite_queued=1,invite_exists=1,date_updated=NOW() WHERE invite_email=:Email;");
+		$RecordExistingInvite_cmd=Yii::$app->db->createCommand("UPDATE social_bulk_invite SET invite_queued=1,invite_exists=1,date_updated=NOW(),times_sent=1 WHERE invite_email=:Email;");
 		
 		foreach($GetPendingInvitesList_cmd as $GetPendingInvitesList_row){
 			$myInviteEmail=$GetPendingInvitesList_row['invite_email'];
@@ -303,6 +308,70 @@ class ConfigController extends \humhub\modules\admin\components\Controller {
 			echo $dlsocBulkInviteFile; 
 			exit;
 			}
+		}
+	
+	public function myResendCurrentInvites(){
+		$myActivityLog=''; $myBR='<br>'; 
+		$myActivityLog.=$myBR.Yii::t('SocialBulkInviteModule.base','-- begin Re-Send Invites --').$myBR; 
+		
+		//$curUserID=Yii::$app->user->id; 
+		//$curUserName=Yii::$app->user->displayName; 
+		
+		$mysbi=Yii::$app->getModule('social_bulk_invite'); 
+		$inviteSendRate = $mysbi->settings->get('theSendRate'); 
+		$inviteLang = $mysbi->settings->get('theInviteLang'); 
+		
+		$inviteQueueDelay=0; $inviteQueueDelay+=$inviteSendRate; 
+		
+		$GetResendInvitesList_cmd=Yii::$app->db->createCommand(
+			"SELECT 
+				social_bulk_invite.id as socBulkInviteID,
+				social_bulk_invite.invite_email as reEmail,
+				social_bulk_invite.times_sent as timesSent,
+				user_invite.id as HHInviteID,
+				user_invite.token as inviteToken,
+				user_invite.language as inviteLang,
+				user_invite.space_invite_id as spaceInviteID 
+				FROM 
+					social_bulk_invite,user_invite 
+				WHERE 
+					social_bulk_invite.full_member=0 
+					AND social_bulk_invite.invite_exists=1 
+					AND social_bulk_invite.invite_email=user_invite.email COLLATE utf8mb4_unicode_520_ci;")->queryAll(); 
+		
+		if(count($GetResendInvitesList_cmd)==0){
+			$myActivityLog.=Yii::t('SocialBulkInviteModule.base','Resend Invites - Nothing to do..').$myBR; 
+			return $myActivityLog; 
+			}
+		
+		foreach($GetResendInvitesList_cmd as $GetResendInvitesList_row){
+			$myInviteEmail=$GetResendInvitesList_row['reEmail'];
+			$socBulkInviteID=$GetResendInvitesList_row['socBulkInviteID'];
+			$timesSent=$GetResendInvitesList_row['timesSent'];
+			$HHInviteID=$GetResendInvitesList_row['HHInviteID'];
+			$inviteToken=$GetResendInvitesList_row['inviteToken'];
+			$inviteLang=$GetResendInvitesList_row['inviteLang'];
+			$spaceInviteID=$GetResendInvitesList_row['spaceInviteID'];
+			
+			Yii::$app->queue->delay($inviteQueueDelay)->push(new ResendInviteJob([
+				'inviteID' => $HHInviteID,
+				'inviteEmail' => $myInviteEmail,
+				'inviteSpace' => $spaceInviteID,
+				//'inviteOriginID' => $curUserID,
+				//'inviteOriginDisplayName' => $curUserName,
+				'inviteLanguage' => $inviteLang,
+				'inviteTimesSent' => $timesSent,
+				'inviteToken' => $inviteToken,
+				]));
+			$myActivityLog.=$myInviteEmail.Yii::t('SocialBulkInviteModule.base',': re-invite queued..').$myBR; 
+			
+			// increase delay
+			$inviteQueueDelay+=$inviteSendRate; 
+			$myActivityLog.=$myInviteEmail.Yii::t('SocialBulkInviteModule.base',': new invite rate: ').$inviteQueueDelay.'..'.$myBR; 
+			}
+		
+		$myActivityLog.=Yii::t('SocialBulkInviteModule.base','-- end Re-Send Invites --').$myBR.$myBR; 
+		return $myActivityLog;
 		}
 	
 	}
