@@ -1,5 +1,9 @@
 
 
+### 1.0
+
+i think it's actually ready..
+
 ### 0.3
 
 added a button to copy invite link/token to send it manually..

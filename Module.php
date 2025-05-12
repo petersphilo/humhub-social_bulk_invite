@@ -46,7 +46,7 @@ class Module extends \humhub\components\Module
 			$social_bulk_invite->settings->set('theSendRate', 4); 
 			}
 		if ($social_bulk_invite->settings->get('theInviteLang') == '') {
-			$social_bulk_invite->settings->set('theInviteLang', 'en'); 
+			$social_bulk_invite->settings->set('theInviteLang', 'App'); 
 			}
 		if ($social_bulk_invite->settings->get('showDebug') == '') {
 			$social_bulk_invite->settings->set('showDebug', 0); 

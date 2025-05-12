@@ -1,10 +1,10 @@
 # Social Bulk Invite
-This module creates an Invite-by-email widget that is visible only by the members of a chosen group
 
+This module allows admins to do mass-invites and, importantly, to throttle the outgoing emails
 
 <br><br>
 
-## Donationware -- Consider a Donation!!
+## Donationware -- Please Consider a Donation!!
 
 Your doantion would really, really, really, really help!  
 https://www.paypal.com/donate/?hosted_button_id=AEA7Q4V5RMY4S

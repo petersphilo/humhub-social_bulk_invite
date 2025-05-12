@@ -118,6 +118,7 @@ class ConfigController extends \humhub\modules\admin\components\Controller {
 		$inviteSpace = $mysbi->settings->get('theSpace'); 
 		$inviteSendRate = $mysbi->settings->get('theSendRate'); 
 		$inviteLang = $mysbi->settings->get('theInviteLang'); 
+		if($mysbi->settings->get('theInviteLang')=='App'){$inviteLang=Yii::$app->user->language;}
 		
 		$inviteQueueDelay=0; $inviteQueueDelay+=$inviteSendRate; 
 		
@@ -287,13 +288,6 @@ class ConfigController extends \humhub\modules\admin\components\Controller {
 		return $myActivityLog; 
 		}
 	
-	public function myAlertMessage($title,$body){
-		return $this->renderAjax('response', [
-					'title' => $title,
-					'body' => $body,
-					]);
-		}
-	
 	public function MyDataRequest(){
 		if(Yii::$app->request->get('SocBulkInviteDL')=='Yes'){
 			$MyTabChar="\t"; 
@@ -320,6 +314,7 @@ class ConfigController extends \humhub\modules\admin\components\Controller {
 		$mysbi=Yii::$app->getModule('social_bulk_invite'); 
 		$inviteSendRate = $mysbi->settings->get('theSendRate'); 
 		$inviteLang = $mysbi->settings->get('theInviteLang'); 
+		if($mysbi->settings->get('theInviteLang')=='App'){$inviteLang=Yii::$app->user->language;}
 		
 		$inviteQueueDelay=0; $inviteQueueDelay+=$inviteSendRate; 
 		

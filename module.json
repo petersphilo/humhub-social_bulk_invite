@@ -7,13 +7,13 @@
 		"homepage": "zconsulting.net",
 		"role": "The Alpha, The Omega - just kidding; it's just me.."
 		}],
-	"description": "This module allows admins to do mass-invites",
+	"description": "This module allows admins to do mass-invites and, importantly, to throttle the outgoing emails",
 	"keywords": [
 		"users", "invite"
 		],
-	"version": "0.3.0",
+	"version": "1.0.0",
 	"humhub": {
-		"minVersion": "1.17.0"
+		"minVersion": "1.12.0"
 		},
 	"screenshots": ["assets/screen-1.jpg","assets/screen-2.jpg"]
 }

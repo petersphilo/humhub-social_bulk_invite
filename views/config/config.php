@@ -48,7 +48,7 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 
 <div class="panel panel-default">
 	<div class="panel-heading">
-		Social Bulk Invite Module Configuration
+		Social Bulk Invite
 	</div>
 	<div class="panel-body">
 		<div style='float: right; '>
@@ -68,11 +68,18 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 
 		<div class="form-group">
 			<?php 
+				$myLangTextDefault=Yii::t('SocialBulkInviteModule.base','This User\'s Current Language');
+				$myLangTextEN=Yii::t('SocialBulkInviteModule.base','English');
+				$myLangTextFR=Yii::t('SocialBulkInviteModule.base','French');
+				$myLangTextDE=Yii::t('SocialBulkInviteModule.base','German');
+				$myLangTextES=Yii::t('SocialBulkInviteModule.base','Spanish');
+				$mySubmitButton=Yii::t('SocialBulkInviteModule.base','Save (& add to list)');
 				echo $form->field($model, 'theSpace')->dropdownList($MySpacesFull); 
-				echo $form->field($model, 'theInviteLang')->dropdownList(['en-US'=>'EN','fr-FR'=>'FR']);  
-				echo $form->field($model, 'showDebug')->checkbox();
+				echo $form->field($model, 'theInviteLang')->dropdownList(['App'=>$myLangTextDefault,'en-US'=>$myLangTextEN,'fr-FR'=>$myLangTextFR,'es-ES'=>$myLangTextES,'de-DE'=>$myLangTextDE]);  
 				echo $form->field($model, 'theSendRate')->textInput(); 
+				//echo $form->field($model, 'showDebug')->checkbox();
 			?>
+			<span class='mySmallerText myEffectiveSendRateCont'><?php echo Yii::t('SocialBulkInviteModule.base','Approximate Send Rate'); ?>: <span class='myEffectiveSendRate'></span>.</span>
 		</div>
 		<span id='MyCurrentGetURL'></span>
 		<span id='MyNewGetURL'></span>
@@ -84,7 +91,7 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 		?>
 		<br>
 
-		<?php echo Html::submitButton('Save', ['class' => 'btn btn-primary']); ?>
+		<?php echo Html::submitButton($mySubmitButton, ['class' => 'btn btn-primary']); ?>
 		
 		<a class="btn btn-default" href="<?php echo Url::to(['/social_bulk_invite/config/config']); ?>">
 			<?php echo Yii::t('SocialBulkInviteModule.base','Refresh'); ?>
@@ -118,18 +125,20 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 			FROM social_bulk_invite WHERE full_member=0 ORDER BY id desc;")->queryAll(); 
 	$PendingInvitesListCount=count($GetPendingInvitesList_cmd); 
 	
-	$GetMatchingToken_cmd=Yii::$app->db->createCommand("SELECT token FROM user_invite WHERE email=:Email;"); 
+	$GetMatchingUserStuff_cmd=Yii::$app->db->createCommand("SELECT token AS theMatchingToken, language AS theMatchingLang FROM user_invite WHERE email=:Email;"); 
 	
 ?>
 		<style>
 			table.MyRecentInvites{width:100%; }
 			.MyRecentInvites tr:first-of-type td{font-weight:500; background-color:#777; color:#fff; }
 			.MyRecentInvites td{border:1px solid #ddd; padding:0.25em; }
+			.mySmallerText {font-size: 0.8em; }
 			.NoWrapLines {white-space: nowrap; }
 			.redAlertOnZero, .redAlertOnZero td {background-color:#e99; }
 			.myCopyDataLink {position: relative; }
 			.myCopied{display: none; background-color:#333; color: #fff; border: 1px solid #ccc; border-radius: 4px; position: absolute; padding: 0.5em 1em; bottom: -2em; right: 2.5em; z-index:99; }
 		</style>
+		<span style='float:right;'><?php echo Yii::t('SocialBulkInviteModule.base','Invites Not Converted: ').$PendingInvitesListCount; ?></span>
 		<table class='MyRecentInvites'>
 			<tr>
 				<td class='NoWrapLines'>
@@ -141,6 +150,9 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 				<td>
 					<?php echo Yii::t('SocialBulkInviteModule.base','Invite Sent?'); ?>
 				</td>
+				<td>
+					<?php echo Yii::t('SocialBulkInviteModule.base','Lang'); ?>
+				</td>
 				<td class='NoWrapLines'>
 					<?php echo Yii::t('SocialBulkInviteModule.base','Date Created'); ?>
 				</td>
@@ -148,7 +160,7 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 					<?php echo Yii::t('SocialBulkInviteModule.base','Times Sent'); ?>
 				</td>
 				<td class='NoWrapLines'>
-					<?php echo Yii::t('SocialBulkInviteModule.base','Token'); ?>
+					<?php echo Yii::t('SocialBulkInviteModule.base','Token'); ?> <span class='mySmallerText'>(<?php echo Yii::t('SocialBulkInviteModule.base','Copy link'); ?>)</span>
 				</td>
 			</tr>
 <?php			
@@ -161,23 +173,28 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 		if($raoz==0){$resp='redAlertOnZero ';}
 		return $resp;}
 	foreach($GetPendingInvitesList_cmd as $PendingInvitesList_row){
-		$theMatchingToken=''; 
-		if($PendingInvitesList_row['invite_queued']==1 && $PendingInvitesList_row['invite_exists']=1){
-			$theMatchingToken=$GetMatchingToken_cmd->bindValue(':Email',$PendingInvitesList_row['invite_email'])->queryScalar(); 
+		$theMatchingToken=''; $theMatchingLang=''; $theMatchingTokenURL=''; $theMatchingTokenText=''; 
+		if($PendingInvitesList_row['invite_queued']==1 && $PendingInvitesList_row['invite_exists']==1){
+			$GetMatchingUserStuff=$GetMatchingUserStuff_cmd->bindValue(':Email',$PendingInvitesList_row['invite_email'])->queryOne(); 
+			$theMatchingToken=$GetMatchingUserStuff['theMatchingToken']; 
+			$theMatchingLang=$GetMatchingUserStuff['theMatchingLang']; 
 			$theMatchingTokenURL=Url::to(['/user/registration?token='.$theMatchingToken], true); 
+			}
+		if($theMatchingToken!=''){
+			$theMatchingTokenText=$theMatchingToken.' 
+					<div class="pull-right btn-sm btn btn-default myCopyDataLink" my-link="'.$theMatchingTokenURL.'">
+						<i class="fa fa-copy" aria-hidden="true"></i>
+						<div class="myCopied"><i>Copied!</i><br><span class=\'mySmallerText\'>'.$theMatchingTokenURL.'</span></div>
+					</div>'; 
 			}
 		$BuildTableRow="<tr class='".redAlertOnZero($PendingInvitesList_row['invite_queued'])."'>"
 			."<td class='NoWrapLines'>".$PendingInvitesList_row['invite_email'].'</td>'
 			."<td>".zeroOneToYN($PendingInvitesList_row['invite_queued']).'</td>'
 			.'<td>'.zeroOneToYN($PendingInvitesList_row['invite_exists']).'</td>'
+			.'<td>'.$theMatchingLang.'</td>'
 			."<td class='NoWrapLines'>".substr($PendingInvitesList_row['date_created'],0,10).'</td>'
 			."<td class='NoWrapLines'>".$PendingInvitesList_row['times_sent'].'</td>'
-			."<td class='NoWrapLines'>".$theMatchingToken.' 
-				<div class="pull-right btn-sm btn btn-default myCopyDataLink" my-link="'.$theMatchingTokenURL.'">
-					<i class="fa fa-copy" aria-hidden="true"></i>
-					<div class="myCopied"><i>Copied!</i> '.$theMatchingTokenURL.'</div>
-				</div>
-				</td>'
+			."<td class='NoWrapLines'>".$theMatchingTokenText.'</td>'
 			.'</tr>'; 
 		echo $BuildTableRow; 
 		}
@@ -188,7 +205,7 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 </div>
 <script <?php echo humhub\libs\Html::nonce(); ?>>
 	$(function(){
-		var MyNewGetURL='', MyCopyDataLink='', 
+		var MyNewGetURL='', MyCopyDataLink='', myEffectiveSendRateSpan=$('.myEffectiveSendRate'), mySendDelayVal=1, myEffectiveSendRateVal='', mySendDelayForm=$('#configureform-thesendrate'), 
 			MyCurrentGetURL=window.location.search; 
 		$('#socBulkInvite-DL').on('click',function(){
 			if(MyCurrentGetURL.length){MyNewGetURL=MyCurrentGetURL+'&SocBulkInviteDL=Yes'; }
@@ -213,9 +230,23 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 		$('.myCopyDataLink').on('click',function(){
 			MyCopyDataLink=$(this).attr('my-link'); 
 			navigator.clipboard.writeText(MyCopyDataLink); 
-			$(this).children('.myCopied').fadeIn(600,function(){
-				$(this).fadeOut(600);
+			$(this).children('.myCopied').fadeIn(1200,function(){
+				$(this).fadeOut(1600);
 				}); 
 			}); 
+		mySendDelayForm.after($('.myEffectiveSendRateCont'));
+		calcMyEffectiveSendRate=function(){
+			mySendDelayVal=mySendDelayForm.val(); 
+			console.log(mySendDelayVal); 
+			if(mySendDelayVal>0&&mySendDelayVal<3600){
+				myEffectiveSendRateVal=Math.ceil(3600/mySendDelayVal)+"/h"; 
+				}
+			else if(mySendDelayVal>3600){
+				myEffectiveSendRateVal=(Math.ceil(864000/mySendDelayVal)/10)+"/<?php echo Yii::t('SocialBulkInviteModule.base','day'); ?>"; 
+				}
+			myEffectiveSendRateSpan.text(myEffectiveSendRateVal); 
+			}
+		mySendDelayForm.on('change blur mouseenter mouseleave keyup',calcMyEffectiveSendRate); 
+		calcMyEffectiveSendRate();
 		}); 
 </script>
