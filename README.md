@@ -13,6 +13,14 @@ Thank You!
 
 <br><br>
 
+## ScreenShots
+
+This is pretty much how it looks:
+
+![ScreenShot 1](/assets/screen-1.jpg?raw=true "ScreenShot 1")
+
+<br><br>
+
 ## Other ways to install
 
 ### Installation (Using Git Clone)
