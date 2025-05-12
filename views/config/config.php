@@ -176,9 +176,11 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 		$theMatchingToken=''; $theMatchingLang=''; $theMatchingTokenURL=''; $theMatchingTokenText=''; 
 		if($PendingInvitesList_row['invite_queued']==1 && $PendingInvitesList_row['invite_exists']==1){
 			$GetMatchingUserStuff=$GetMatchingUserStuff_cmd->bindValue(':Email',$PendingInvitesList_row['invite_email'])->queryOne(); 
-			$theMatchingToken=$GetMatchingUserStuff['theMatchingToken']; 
-			$theMatchingLang=$GetMatchingUserStuff['theMatchingLang']; 
-			$theMatchingTokenURL=Url::to(['/user/registration?token='.$theMatchingToken], true); 
+			if($GetMatchingUserStuff){
+				$theMatchingToken=$GetMatchingUserStuff['theMatchingToken']; 
+				$theMatchingLang=$GetMatchingUserStuff['theMatchingLang']; 
+				$theMatchingTokenURL=Url::to(['/user/registration?token='.$theMatchingToken], true); 
+				}
 			}
 		if($theMatchingToken!=''){
 			$theMatchingTokenText=$theMatchingToken.' 
