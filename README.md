@@ -17,7 +17,7 @@ Thank You!
 
 This is pretty much how it looks:
 
-![ScreenShot 1](/assets/screen-1.jpg?raw=true "ScreenShot 1")
+![ScreenShot 1](/resources/screen-1.jpg?raw=true "ScreenShot 1")
 
 <br><br>
 
