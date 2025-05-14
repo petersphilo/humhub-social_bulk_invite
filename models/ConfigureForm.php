@@ -44,10 +44,10 @@ class ConfigureForm extends \yii\base\Model
 	public function attributeLabels()
 	{
 		
-		$theSpace_title=Yii::t('SocialBulkInviteModule.base','The Space ID Where Guests Will Land'); 
-		$theInvitees_title=Yii::t('SocialBulkInviteModule.base','Email addresses to invite -- only valid emails, 1 per line..'); 
-		$theSendRate_title=Yii::t('SocialBulkInviteModule.base','The delay between each sent invite, in seconds (1s min.)'); 
-		$theInviteLang_title=Yii::t('SocialBulkInviteModule.base','The invite Language'); 
+		$theSpace_title=Yii::t('SocialBulkInviteModule.base','The Space Where Guests Will Land'); 
+		$theInvitees_title=Yii::t('SocialBulkInviteModule.base','Email Addresses to Invite'); 
+		$theSendRate_title=Yii::t('SocialBulkInviteModule.base','Delay Between Invites (in seconds)'); 
+		$theInviteLang_title=Yii::t('SocialBulkInviteModule.base','The Invite Language'); 
 		$showDebug_title=Yii::t('SocialBulkInviteModule.base','Show Debug Info?'); 
 		
 		return array(

@@ -1,5 +1,9 @@
 
 
+### 1.0.1
+
+small UI changes
+
 ### 1.0
 
 i think it's actually ready..

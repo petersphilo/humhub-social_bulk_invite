@@ -31,7 +31,7 @@ $social_bulk_invite=Yii::$app->getModule('social_bulk_invite');
 
 $ReadTheSpace=$social_bulk_invite->settings->get('theSpace'); 
 
-$ReadTheInvitees=$social_bulk_invite->settings->get('theInvitees'); 
+//$ReadTheInvitees=$social_bulk_invite->settings->get('theInvitees'); 
 //$ReadTheSaveCount=$social_bulk_invite->settings->get('theSaveCount'); 
 $showDebugYN=$social_bulk_invite->settings->get('showDebug'); 
 
@@ -40,7 +40,7 @@ $GetTheSpaceName_cmd=Yii::$app->db->createCommand("SELECT name FROM space WHERE 
 $MySpacesFull=[]; 
 $ListAllSpaces_cmd=Yii::$app->db->createCommand("SELECT id,name FROM space;")->queryAll(); 
 foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
-	$SpaceName=$ListAllSpaces_row['id'].' -- '.$ListAllSpaces_row['name']; 
+	$SpaceName=$ListAllSpaces_row['name']; 
 	$MySpacesFull+=[$ListAllSpaces_row['id']=>$SpaceName]; 
 	}
 
@@ -79,7 +79,7 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 				echo $form->field($model, 'theSendRate')->textInput(); 
 				//echo $form->field($model, 'showDebug')->checkbox();
 			?>
-			<span class='mySmallerText myEffectiveSendRateCont'><?php echo Yii::t('SocialBulkInviteModule.base','Approximate Send Rate'); ?>: <span class='myEffectiveSendRate'></span>.</span>
+			<span class='mySmallerText myEffectiveSendRateCont'><?php echo Yii::t('SocialBulkInviteModule.base','Minimum value is 1 second. This sets the delay between each sent invitation. Approximate Send Rate'); ?>: <span class='myEffectiveSendRate'></span>.</span>
 		</div>
 		<span id='MyCurrentGetURL'></span>
 		<span id='MyNewGetURL'></span>
@@ -87,17 +87,18 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 		<br>
 		<?php
 			echo $form->field($model, 'theInvitees')->textarea();
-			echo '<br>'.$ReadTheInvitees; 
+			//echo '<br>'.$ReadTheInvitees; 
 		?>
+			<span class='mySmallerText myEmailListInfo'><?php echo Yii::t('SocialBulkInviteModule.base','Only valid emails, 1 per line..'); ?></span>
 		<br>
-
-		<?php echo Html::submitButton($mySubmitButton, ['class' => 'btn btn-primary']); ?>
 		
 		<a class="btn btn-default" href="<?php echo Url::to(['/social_bulk_invite/config/config']); ?>">
 			<?php echo Yii::t('SocialBulkInviteModule.base','Refresh'); ?>
 		</a>
+
+		<?php echo Html::submitButton($mySubmitButton, ['class' => 'btn btn-primary']); ?>
 		
-		<a class="btn btn-info" href="<?php echo Url::to(['/social_bulk_invite/config/config?resendCurrentInvites=resendCurrentInvites']); ?>">
+		<a class="pull-right btn btn-info" href="<?php echo Url::to(['/social_bulk_invite/config/config?resendCurrentInvites=resendCurrentInvites']); ?>">
 			<?php echo Yii::t('SocialBulkInviteModule.base','Re-Send All Current Invites'); ?>
 		</a>
 		<!--
@@ -138,7 +139,7 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 			.myCopyDataLink {position: relative; }
 			.myCopied{display: none; background-color:#333; color: #fff; border: 1px solid #ccc; border-radius: 4px; position: absolute; padding: 0.5em 1em; bottom: -2em; right: 2.5em; z-index:99; }
 		</style>
-		<span style='float:right;'><?php echo Yii::t('SocialBulkInviteModule.base','Invites Not Converted: ').$PendingInvitesListCount; ?></span>
+		<div style='text-align: right; '><?php echo Yii::t('SocialBulkInviteModule.base','Invites Not Converted: ').$PendingInvitesListCount.'<br>'.Yii::t('SocialBulkInviteModule.base','Note: converted and existing users will not appear in this list.'); ?></div>
 		<table class='MyRecentInvites'>
 			<tr>
 				<td class='NoWrapLines'>
@@ -237,6 +238,7 @@ foreach($ListAllSpaces_cmd as $ListAllSpaces_row){
 				}); 
 			}); 
 		mySendDelayForm.after($('.myEffectiveSendRateCont'));
+		$('#configureform-theinvitees').after($('.myEmailListInfo'));
 		calcMyEffectiveSendRate=function(){
 			mySendDelayVal=mySendDelayForm.val(); 
 			console.log(mySendDelayVal); 

@@ -62,7 +62,7 @@ class ConfigController extends \humhub\modules\admin\components\Controller {
 			$showMessage=''; $takeABreather=''; 
 			$social_bulk_invite=Yii::$app->getModule('social_bulk_invite'); 
 			if(Yii::$app->request->get('reset')=='reset'){
-				$social_bulk_invite->settings->set('theInvitees', '');
+				//$social_bulk_invite->settings->set('theInvitees', '');
 				//$social_bulk_invite->settings->set('theSaveCount', 0);
 				$social_bulk_invite->settings->set('theSendRate', 4);
 				$social_bulk_invite->settings->set('theInviteLang', 'en-US');
@@ -79,7 +79,7 @@ class ConfigController extends \humhub\modules\admin\components\Controller {
 				}
 			$form = new ConfigureForm();
 			$form->theSpace = $social_bulk_invite->settings->get('theSpace');
-			$form->theInvitees = $social_bulk_invite->settings->get('theInvitees');
+			//$form->theInvitees = $social_bulk_invite->settings->get('theInvitees');
 			$form->theSendRate = $social_bulk_invite->settings->get('theSendRate');
 			$form->theInviteLang = $social_bulk_invite->settings->get('theInviteLang');
 			$form->showDebug = $social_bulk_invite->settings->get('showDebug');
